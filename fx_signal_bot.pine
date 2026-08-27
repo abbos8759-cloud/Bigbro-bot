@@ -1,0 +1,93 @@
+//@version=6
+indicator("BigBro Trading Bot: S/R Breakout", overlay=true, max_lines_count=500)
+
+// ================= SUPPORT / RESISTANCE (sham rangi o'zgarishi) =================
+grpSr     = "Support/Resistance"
+maxLevels = input.int(60, "Saqlanadigan max daraja (tarix uchun)", minval=5, maxval=300, group=grpSr)
+resCol    = input.color(color.red, "Resistance rangi", group=grpSr)
+supCol    = input.color(color.lime, "Support rangi", group=grpSr)
+lw        = input.int(1, "Chiziq qalinligi", minval=1, maxval=4, group=grpSr)
+
+// Tarix uchun (faqat vizual) — sindirilgan/eskirgan chiziqlar shu yerda saqlanadi
+var line[] supHistory = array.new_line()
+var line[] resHistory = array.new_line()
+
+// FAOL (hali sinmagan) support/resistance — har tomondan FAQAT BITTASI, eng oxirgisi.
+// Shu bilan bir xil joyda ketma-ket hosil bo'lgan eski chiziqlar signal bermay qo'yadi —
+// signal FAQAT eng oxirgi (faol) chiziq sinsagina chiqadi.
+var line  supLine  = na
+var float supLevel = na
+var line  resLine  = na
+var float resLevel = na
+
+archive(historyArr, ln) =>
+    array.push(historyArr, ln)
+    if array.size(historyArr) > maxLevels
+        line.delete(array.shift(historyArr))
+
+buySignal  = false
+sellSignal = false
+
+// Hammasi FAQAT sham to'liq yopilgandan keyin (barstate.isconfirmed) ishlaydi —
+// shu bilan intrabar (hali yopilmagan sham) asosida soxta/ortiqcha signal chiqishi to'xtaydi.
+if barstate.isconfirmed
+    isGreen    = close > open
+    isRed      = close < open
+    prevGreen  = close[1] > open[1]
+    prevRed    = close[1] < open[1]
+    redToGreen = isGreen and prevRed
+    greenToRed = isRed and prevGreen
+
+    // yangi support (qizil -> yashil o'tish) — eskisi hali sinmagan bo'lsa, tarixga o'tkaziladi
+    if redToGreen
+        if not na(supLine)
+            line.set_extend(supLine, extend.none)
+            line.set_x2(supLine, bar_index - 1)
+            archive(supHistory, supLine)
+        supLevel := close[1]
+        supLine  := line.new(bar_index - 1, supLevel, bar_index, supLevel, extend=extend.right, color=supCol, width=lw)
+
+    // yangi resistance (yashil -> qizil o'tish) — eskisi hali sinmagan bo'lsa, tarixga o'tkaziladi
+    if greenToRed
+        if not na(resLine)
+            line.set_extend(resLine, extend.none)
+            line.set_x2(resLine, bar_index - 1)
+            archive(resHistory, resLine)
+        resLevel := close[1]
+        resLine  := line.new(bar_index - 1, resLevel, bar_index, resLevel, extend=extend.right, color=resCol, width=lw)
+
+    // ---- yopilgan shamning tanasi FAOL chiziqni yordimi? ----
+    bodyHi = math.max(open, close)
+    bodyLo = math.min(open, close)
+
+    // FAOL RESISTANCE tana bilan yuqoriga yorib yopilsa -> BUY (faqat shu bitta, oxirgi chiziq uchun)
+    if not na(resLine) and bodyLo < resLevel and close > resLevel
+        buySignal := true
+        line.set_extend(resLine, extend.none)
+        line.set_x2(resLine, bar_index)
+        archive(resHistory, resLine)
+        resLine := na
+
+    // FAOL SUPPORT tana bilan pastga yorib yopilsa -> SELL (faqat shu bitta, oxirgi chiziq uchun)
+    if not na(supLine) and bodyHi > supLevel and close < supLevel
+        sellSignal := true
+        line.set_extend(supLine, extend.none)
+        line.set_x2(supLine, bar_index)
+        archive(supHistory, supLine)
+        supLine := na
+
+// Faqat belgi (shape) — BUY/SELL yozuvi yo'q
+plotshape(buySignal,  title="BUY",  style=shape.triangleup,   location=location.belowbar, color=color.new(color.green, 0), size=size.small)
+plotshape(sellSignal, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.new(color.red, 0),   size=size.small)
+
+alertcondition(buySignal,  title="BUY signal",  message="{{ticker}} {{interval}} BUY | close={{close}} time={{time}}")
+alertcondition(sellSignal, title="SELL signal", message="{{ticker}} {{interval}} SELL | close={{close}} time={{time}}")
+
+// "30" -> "M30", "60" -> "M60", "D"/"W"/"1M" o'zgarishsiz qoladi
+tfNum   = str.tonumber(timeframe.period)
+tfLabel = na(tfNum) ? timeframe.period : "M" + timeframe.period
+
+if buySignal
+    alert('{"symbol":"' + syminfo.ticker + '","tf":"' + tfLabel + '","side":"BUY","breakType":"RESISTANCE"}', alert.freq_once_per_bar_close)
+if sellSignal
+    alert('{"symbol":"' + syminfo.ticker + '","tf":"' + tfLabel + '","side":"SELL","breakType":"SUPPORT"}', alert.freq_once_per_bar_close)
