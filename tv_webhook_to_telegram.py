@@ -34,12 +34,16 @@ TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 # har qanday belgidan kelgan signal o'tkaziladi.
 SYMBOLS_WHITELIST = {
     "XAUUSD",
+    "XAGUSD",
     "BTCUSDT.P",
     "GER40",
     "JP225",
     "USDJPY",
     "EURUSD",
     "AUDUSD",
+    "SPX500",
+    "NAS100",
+    "EU50",
 }
 
 
