@@ -66,6 +66,7 @@ SYMBOLS_WHITELIST = {
     "GER40",
     "JP225",
     "USDJPY",
+    "USDCHF",
     "EURUSD",
     "AUDUSD",
     "SPX500",
