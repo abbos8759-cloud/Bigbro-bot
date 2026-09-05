@@ -99,7 +99,7 @@ def format_message(raw_text: str):
 
     emoji = "🟢" if side == "BUY" else "🔴"
     return (
-        f"🤖 BigBro Trading Bot\n"
+        f"🤖 Trading Robot\n"
         f"{emoji} {symbol} {tf} {side}\n"
         f"{break_type} BREAKOUT"
     )
@@ -131,7 +131,7 @@ def tv_webhook():
 
 @app.route("/", methods=["GET"])
 def health():
-    return "BigBro Trading Bot ishlayapti", 200
+    return "Trading Robot ishlayapti", 200
 
 
 if __name__ == "__main__":
