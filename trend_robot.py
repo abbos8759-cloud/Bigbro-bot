@@ -3,9 +3,9 @@ Trading Robot 2.0 - TradingView webhook -> Telegram (@trend_robot_2_bot)
 
 TUZATISHLAR (timeout muammosi):
   1) Webhook darhol 200 qaytaradi, Telegram'ga yuborish orqa fonda (thread)
-  0) Whitelist bo'sh - HAMMA juftliklardan signal o'tadi
   2) Keep-alive: server o'ziga har 10 daqiqada ping yuboradi (Render uxlamasin)
   3) Telegram so'rovi qisqa timeout + 2 marta qayta urinish
+  4) Whitelist olib tashlandi - HAMMA juftliklardan signal o'tadi
 
 Render Environment:
   BOT_TOKEN  = @BotFather bergan token
@@ -26,10 +26,6 @@ app = Flask(__name__)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 CHAT_IDS = [c.strip() for c in os.environ.get("CHAT_IDS", "").split(",") if c.strip()]
-
-# Ruxsat etilgan belgilar. BO'SH = HAMMA belgilar o'tadi.
-# Cheklash kerak bo'lsa: WHITELIST = {"XAUUSD", "BTCUSDT.P"}
-WHITELIST = set()
 
 TG_URL = "https://api.telegram.org/bot{}/sendMessage"
 
@@ -98,12 +94,6 @@ def tv_webhook():
     except Exception:
         print("JSON emas:", raw[:300])
         return "bad json", 200
-
-    symbol = str(data.get("symbol", "")).strip().upper()
-
-    if WHITELIST and symbol not in WHITELIST:
-        print("skipped:", symbol)
-        return "skipped", 200
 
     text = build_message(data)
 
