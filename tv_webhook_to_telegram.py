@@ -52,32 +52,9 @@ if not BOT_TOKEN:
 
 TELEGRAM_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-# Signal beriladigan belgilar ro'yxati. Olib tashlash uchun qatorni o'chiring,
-# qo'shish uchun yangi qator qo'shing (TradingView'dagi syminfo.ticker bilan bir xil
-# bo'lishi kerak). Bo'sh qoldirilsa (SYMBOLS_WHITELIST = None) - har qanday
-# belgidan kelgan signal o'tkaziladi.
-SYMBOLS_WHITELIST = {
-    "XAUUSD",
-    "BTCUSDT.P",
-    "BNBUSDT.P",
-    "SOLUSDT.P",
-    "BCHUSDT.P",
-    "GER40",
-    "JP225",
-    "USDJPY",
-    "USDCHF",
-    "EURUSD",
-    "AUDUSD",
-    "GBPUSD",
-    "EURJPY",
-    "GBPJPY",
-    "NZDJPY",
-    "GBPCHF",
-    "EURNZD",
-    "SPX500",
-    "NAS100",
-    "EU50",
-}
+# Signal beriladigan belgilar ro'yxati. Bo'sh qoldirilgan (SYMBOLS_WHITELIST = None) -
+# HAR QANDAY belgidan kelgan signal o'tkaziladi, cheklov yo'q.
+SYMBOLS_WHITELIST = None
 
 
 def format_message(raw_text: str):
